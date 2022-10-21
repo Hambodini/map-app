@@ -1,20 +1,69 @@
-import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+import React, { Component } from 'react';
+import {
+  Marker
+} from 'expo';
+import {
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
+import * as Location from 'expo-location';
+import MapView from 'react-native-maps';
 
-export default function App() {
-  return (
-    <View style={styles.container}>
-      <Text>Open up App.js to start working on your app!</Text>
-      <StatusBar style="auto" />
-    </View>
-  );
+export default class App extends Component {
+  state = {
+    location: null
+  }
+
+  async getLocation() {
+    let location = await Location.getCurrentPositionAsync();
+    this.setState({
+      location
+    });
+  }
+
+  async componentDidMount() {
+    const permission = await Location.requestForegroundPermissionsAsync();
+    if (permission.status === 'granted') {
+      this.getLocation();
+    }
+  }
+
+  renderMap() {
+    return this.state.location ?
+      <MapView
+        style={styles.map}
+        initialRegion={{
+          latitude: this.state.location.coords.latitude,
+          longitude: this.state.location.coords.longitude,
+          latitudeDelta: 0.09,
+          longitudeDelta: 0.04,
+        }}
+      >
+        <MapView.Marker
+          coordinate={this.state.location.coords}
+          title={"User Location"}
+          description={"You are here!"}
+          image={require('./assets/you-are-here.png')}
+        />
+      </MapView> : null
+  }
+
+  render() {
+    return (
+      <View style={styles.container}>
+        {this.renderMap()}
+      </View>
+    );
+  }
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
   },
+  map: {
+    flex: 1
+  }
 });
